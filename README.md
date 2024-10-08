@@ -24,8 +24,8 @@ O planejador utiliza um algoritmo de planejamento com regressão de metas para g
 
 6. **Impressão do Plano de Ação:** Utiliza a função `print_result/1` para imprimir o plano de ação.
 
-# Chamada da Função de Resolução (Bloco_1.pl) no SWI Prolog PARTE 1
-O objetivo principal do projeto é implementar um planejador capaz de receber um estado inicial de empilhamento de blocos e uma lista de metas desejadas, e então gerar um plano de ação que transforme o estado inicial no estado desejado, respeitando as restrições de movimento dos blocos.
+# Chamada da Função de Resoluçãono SWI Prolog 
+O objetivo principal do projeto é implementar um planejador capaz de receber um estado inicial de empilhamento de blocos e uma lista de metas desejadas, e então gerar um plano de ação que transforme o estado inicial no estado desejado, respeitando as restrições de movimento dos blocos. Cada um delas se diferencia por seu Goal e por seu initial state, variando de acordo com o solicitado pelo professor.
 Para testar o código, siga os seguintes passos
 1. Carregar o Código Prolog: Carregue o código Prolog em um ambiente Prolog, como SWI-Prolog.
 2. Chamar a Função de Resolução: Chame a função solve(Plan) para obter o plano de ação.
