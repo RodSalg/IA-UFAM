@@ -24,15 +24,16 @@ parent(pam, bob).
 parent(bob, jim).
 
 %---------------------------------------------------------
-% Hipótese inicial - Começando com uma hipótese mais simples
-start_hyp([ [predecessor(X, Y)] / [X, Y] ]).
+% Hipótese inicial
+start_hyp([ [predecessor(X1,Y1)] / [X1,Y1],
+            [predecessor(X2,Y2)] / [X2,Y2] ]).
 
 %---------------------------------------------------------
-% Definir backliteral/2 para permitir o uso de predicados de fundo
+% Definir backliteral/2
 backliteral(parent(X, Y), [X, Y]).
 
 %---------------------------------------------------------
-% Código para indução
+% Código fornecido para indução
 
 prove(Goal, Hypo, Answer):-
     max_proof_length(D),
@@ -42,76 +43,71 @@ prove(Goal, Hypo, Answer):-
      RestD < 0, Answer = maybe).    % Maybe, but it looks like inf. loop
 prove(Goal, _, no).                 % Otherwise goal definitely cannot be proved
 
-prove(G, H, D, D):- 
+prove(G, H, D, D):-
     D < 0, !.
 prove([], _, D, D):- !.
-prove([G1|Gs], Hypo, D0, D):- 
-    prove(G1, Hypo, D0, D1), 
+prove([G1|Gs], Hypo, D0, D):-
+    prove(G1, Hypo, D0, D1),
     prove(Gs, Hypo, D1, D).
-prove(G, _, D, D):- 
-    prolog_predicate(G), 
+prove(G, _, D, D):-
+    prolog_predicate(G),
     call(G).
-prove(G, Hypo, D0, D):- 
-    D0 =< 0, !, 
-    D is D0-1 
-    ; 
-    D1 is D0 - 1, 
-    member(Clause/Vars, Hypo), 
-    copy_term(Clause, [Head|Body]), 
-    G = Head, 
+prove(G, Hypo, D0, D):-
+    D0 =< 0, !,
+    D is D0-1
+    ;
+    D1 is D0 - 1,
+    member(Clause/Vars, Hypo),
+    copy_term(Clause, [Head|Body]),
+    G = Head,
     prove(Body, Hypo, D1, D).
 
-induce(Hyp):- 
+induce(Hyp):-
     iter_deep(Hyp, 0).
 
-iter_deep(Hyp, MaxD):- 
-    MaxD > 24, !,                % Limite máximo de profundidade
-    write('Limite de profundidade atingido'), nl, 
-    fail.
-iter_deep(Hyp, MaxD):- 
+iter_deep(Hyp, MaxD):-
     write('MaxD= '), write(MaxD), nl,
     start_hyp(Hyp0),
     complete(Hyp0),
-    depth_first(Hyp0, Hyp, MaxD), 
-    !;                          % Parar se encontrar uma hipótese consistente
-    NewMaxD is MaxD + 1, 
+    depth_first(Hyp0, Hyp, MaxD)
+    ;
+    NewMaxD is MaxD + 1,
     iter_deep(Hyp, NewMaxD).
 
-depth_first(Hyp, Hyp, _):- 
+depth_first(Hyp, Hyp, _):-
     consistent(Hyp).
-depth_first(Hyp0, Hyp, MaxD0):- 
-    MaxD0 > 0, 
-    MaxD1 is MaxD0 - 1, 
-    refine_hyp(Hyp0, Hyp1), 
-    complete(Hyp1), 
-    write('Hipótese refinada: '), write(Hyp1), nl, % Depuração
+depth_first(Hyp0, Hyp, MaxD0):-
+    MaxD0 > 0,
+    MaxD1 is MaxD0 - 1,
+    refine_hyp(Hyp0, Hyp1),
+    complete(Hyp1),
     depth_first(Hyp1, Hyp, MaxD1).
 
-complete(Hyp):- 
-    not(ex(E),                % Verificar se todos os exemplos positivos são cobertos
-        once(prove(E, Hyp, Answer)), % Tentar provar com a hipótese
-        Answer \== yes).      % Se não puder ser provado, a hipótese não está completa
+complete(Hyp):-
+    not(ex(E),             % A positive example
+        once(prove(E, Hyp, Answer)),    % Prove it with Hyp
+        Answer \== yes).        % Possibly provable
 
-consistent(Hyp):- 
-    not(nex(E),               % Verificar se nenhum exemplo negativo é coberto
-        once(prove(E, Hyp, Answer)), % Tentar provar com a hipótese
-        Answer \== no).       % Se puder ser provado, a hipótese não é consistente
+consistent(Hyp):-
+    not(nex(E),             % A negative example
+        once(prove(E, Hyp, Answer)),    % Prove it with Hyp
+        Answer \== no).         % Possibly provable
 
-refine_hyp(Hyp0, Hyp):- 
-    conc(Clauses1, [Clause0/Vars0 | Clauses2], Hyp0), 
-    conc(Clauses1, [Clause/Vars | Clauses2], Hyp), 
+refine_hyp(Hyp0, Hyp):-
+    conc(Clauses1, [Clause0/Vars0 | Clauses2], Hyp0),
+    conc(Clauses1, [Clause/Vars | Clauses2], Hyp),
     refine(Clause0, Vars0, Clause, Vars).
 
-refine(Clause, Args, Clause, NewArgs):- 
-    conc(Args1, [A | Args2], Args), 
-    member(A, Args2), 
+refine(Clause, Args, Clause, NewArgs):-
+    conc(Args1, [A | Args2], Args),
+    member(A, Args2),
     conc(Args1, Args2, NewArgs).
-refine(Clause, Args, NewClause, NewArgs):- 
-    length(Clause, L), 
-    max_clause_length(MaxL), 
-    L < MaxL, 
-    backliteral(Lit, Vars), 
-    conc(Clause, [Lit], NewClause), 
+refine(Clause, Args, NewClause, NewArgs):-
+    length(Clause, L),
+    max_clause_length(MaxL),
+    L < MaxL,
+    backliteral(Lit, Vars),
+    conc(Clause, [Lit], NewClause),
     conc(Args, Vars, NewArgs).
 
 max_proof_length(10).
